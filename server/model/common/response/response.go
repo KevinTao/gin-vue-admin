@@ -13,14 +13,17 @@ type Response struct {
 }
 
 const (
-	ERROR   = 7
-	SUCCESS = 0
+	ERROR             = 7
+	ERROR_USER_EXISTS = 6001
+	SUCCESS           = 0
 )
 
-func Result(code int, data interface{}, msg string, c *gin.Context) {
+type ErrorCode int
+
+func Result(code ErrorCode, data interface{}, msg string, c *gin.Context) {
 	// 开始时间
 	c.JSON(http.StatusOK, Response{
-		code,
+		int(code),
 		data,
 		msg,
 	})
@@ -48,6 +51,10 @@ func Fail(c *gin.Context) {
 
 func FailWithMessage(message string, c *gin.Context) {
 	Result(ERROR, map[string]interface{}{}, message, c)
+}
+
+func FailWithCode(code ErrorCode, message string, c *gin.Context) {
+	Result(code, map[string]interface{}{}, message, c)
 }
 
 func FailWithDetailed(data interface{}, message string, c *gin.Context) {

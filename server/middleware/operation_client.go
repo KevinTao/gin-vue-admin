@@ -8,29 +8,17 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-var operationRecordService = service.ServiceGroupApp.SystemServiceGroup.OperationRecordService
-
-var respPool sync.Pool
-
-func init() {
-	respPool.New = func() interface{} {
-		return make([]byte, 1024)
-	}
-}
-
-func OperationRecord() gin.HandlerFunc {
+func ClientOperationRecord() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body []byte
 		var userId int
@@ -55,7 +43,7 @@ func OperationRecord() gin.HandlerFunc {
 			}
 			body, _ = json.Marshal(&m)
 		}
-		claims, _ := utils.GetClaims(c)
+		claims, _ := utils.GetMemberClaims(c)
 		if claims == nil {
 			userId = -1
 		} else if claims.ID != 0 {
@@ -135,14 +123,4 @@ func OperationRecord() gin.HandlerFunc {
 			global.GVA_LOG.Error("create operation record error:", zap.Error(err))
 		}
 	}
-}
-
-type responseBodyWriter struct {
-	gin.ResponseWriter
-	body *bytes.Buffer
-}
-
-func (r responseBodyWriter) Write(b []byte) (int, error) {
-	r.body.Write(b)
-	return r.ResponseWriter.Write(b)
 }
